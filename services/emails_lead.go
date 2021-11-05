@@ -29,7 +29,7 @@ func ScrapeEmailLeads(dto dtos.EmailScraper) error {
 	mtx := sync.Mutex{}
 	wg := sync.WaitGroup{}
 
-	for _, url := range utils.GenerateDorkUrl(dto.JobTitles, dto.Domains) {
+	for _, url := range utils.GenerateDorkUrl(dto.JobTitle, dto.Keyword, dto.Domains) {
 		wg.Add(1)
 		go func(_url string) {
 			_emails := scrapeUrlPages(_url)

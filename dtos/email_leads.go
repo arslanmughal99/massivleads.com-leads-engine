@@ -1,10 +1,10 @@
 package dtos
 
 type EmailScraper struct {
-	Id string `json:"id" form:"id" valid:"required~Unique id for task is required."`
-	//Limit     *uint     `json:"limit" form:"limit"`
-	Domains   *[]string `json:"domains" form:"domains"`
-	JobTitles []string  `json:"jobTitles" form:"jobTitles" valid:"required~Job title(s) required."`
+	Id       string    `json:"id" form:"id" valid:"required~Unique id for task is required."`
+	Domains  *[]string `json:"domains" form:"domains"`
+	Keyword  *string   `json:"keyword" form:"keyword"`
+	JobTitle string    `json:"jobTitle" form:"jobTitle" valid:"required~Job title required."`
 }
 
 type EmailScraperResp struct {
