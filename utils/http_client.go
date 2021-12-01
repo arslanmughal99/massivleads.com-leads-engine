@@ -4,22 +4,32 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 )
 
 var (
-	_ = godotenv.Load()
+	_          = godotenv.Load()
+	timeout, _ = strconv.ParseInt(os.Getenv("HTTP_TIMEOUT"), 10, 64)
+	userPass   = url.UserPassword(os.Getenv("PROXY_USERNAME"), os.Getenv("PROXY_PASSWORD"))
+)
 
-	proxyURL = &url.URL{
+// NewProxyClient Create a new http client with proxy
+func NewProxyClient(proxy string) *http.Client {
+	proxyURL := &url.URL{
+		Host:   proxy,
 		Scheme: "http",
-		Host:   os.Getenv("PROXY_HOST"),
-		User:   url.UserPassword(os.Getenv("PROXY_USERNAME"), os.Getenv("PROXY_PASSWORD")),
+		User:   userPass,
 	}
 
-	HttpClient = http.Client{
+	c := http.Client{
+		Timeout: time.Duration(timeout) * time.Second,
 		Transport: &http.Transport{
 			Proxy: http.ProxyURL(proxyURL),
 		},
 	}
-)
+
+	return &c
+}

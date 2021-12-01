@@ -29,10 +29,12 @@ func ScrapeEmailLeads(dto dtos.EmailScraper) error {
 	mtx := sync.Mutex{}
 	wg := sync.WaitGroup{}
 
-	for _, url := range utils.GenerateDorkUrl(dto.JobTitle, dto.Keyword, dto.Domains) {
+	country := utils.GetCountryTld(dto.Country)
+
+	for _, url := range utils.GenerateDorkUrl(dto.JobTitle, country["tld"], dto.Keyword, dto.Domains) {
 		wg.Add(1)
 		go func(_url string) {
-			_emails := scrapeUrlPages(_url)
+			_emails := scrapeUrlPages(_url, fmt.Sprintf("%s.%s", country["sub"], country["host"]))
 			mtx.Lock()
 			emails = append(emails, _emails...)
 			mtx.Unlock()
@@ -48,6 +50,7 @@ func ScrapeEmailLeads(dto dtos.EmailScraper) error {
 		postWebhookResult(resp)
 		return nil
 	}
+
 	response := new(dtos.EmailScraperWebhookResp)
 	response.Id = dto.Id
 	response.Emails = emails
@@ -57,7 +60,7 @@ func ScrapeEmailLeads(dto dtos.EmailScraper) error {
 }
 
 // scrapeUrlPages scrape first 10 pages for given dork url
-func scrapeUrlPages(url string) []string {
+func scrapeUrlPages(url string, proxy string) []string {
 	var emails []string
 	mtx := sync.Mutex{}
 	wg := sync.WaitGroup{}
@@ -65,7 +68,7 @@ func scrapeUrlPages(url string) []string {
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
 		go func(page int) {
-			body, err := getBody(url, page)
+			body, err := getBody(url, proxy, page)
 
 			if err != nil {
 				wg.Done()
@@ -86,8 +89,8 @@ func scrapeUrlPages(url string) []string {
 }
 
 // getBody Get body of http response
-func getBody(dorkUrl string, page int) (*string, error) {
-	resp, err := utils.HttpClient.Get(fmt.Sprintf("%s&start=%d", dorkUrl, page*10))
+func getBody(dorkUrl string, proxy string, page int) (*string, error) {
+	resp, err := utils.NewProxyClient(proxy).Get(fmt.Sprintf("%s&start=%d", dorkUrl, page*10))
 	if err != nil {
 		log.Error().Err(err).Int("Page", page).Str("Url", dorkUrl).Msg("Http request error")
 		return nil, err

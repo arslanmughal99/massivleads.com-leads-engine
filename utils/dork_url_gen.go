@@ -3,16 +3,14 @@ package utils
 import (
 	"fmt"
 	"net/url"
-
-	"emailscraper/constants"
 )
 
-func GenerateDorkUrl(jobTitle string, keyword *string, domains *[]string) []string {
+func GenerateDorkUrl(jobTitle string, countryCode string, keyword *string, domains *[]string) []string {
 	var d []string
 	if domains != nil {
 		d = *domains
 	} else {
-		d = constants.Domains
+		d = GetEmailDomains(countryCode)
 	}
 
 	var urls = make([]string, len(d))
@@ -27,8 +25,8 @@ func GenerateDorkUrl(jobTitle string, keyword *string, domains *[]string) []stri
 
 	for i, domain := range d {
 		urls[i] = fmt.Sprintf(
-			"https://www.google.com/search?q=%s",
-			url.QueryEscape(fmt.Sprintf("%s%sAND intitle:\"@%s\"", jobTitle, kw, domain)),
+			"https://www.google.%s/search?q=%s", countryCode,
+			url.QueryEscape(fmt.Sprintf("%s%sAND (intitle:\"@%s\" OR intext:\"@%s\")", jobTitle, kw, domain, domain)),
 		)
 	}
 
